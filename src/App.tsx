@@ -22,7 +22,10 @@ function App() {
     () => loadDayOfWeek() ?? businessDate.getDay(),
   )
   const [store, setStore] = useState<StoreId>(() => loadStore())
-  const [checkedIds, setCheckedIds] = useState<string[]>(() => loadCheckedIds(store, getBusinessDateKey(getBusinessDate())))
+  const [checkedIds, setCheckedIds] = useState<string[]>(() => {
+    const initDay = loadDayOfWeek() ?? getBusinessDate().getDay()
+    return loadCheckedIds(store, getBusinessDateKey(getBusinessDate()), initDay)
+  })
 
   const todaySuppliers = useMemo(
     () => getSuppliersForDay(store, dayOfWeek),
@@ -38,8 +41,8 @@ function App() {
   }, [store])
 
   useEffect(() => {
-    setCheckedIds(loadCheckedIds(store, dateKey))
-  }, [store, dateKey])
+    setCheckedIds(loadCheckedIds(store, dateKey, dayOfWeek))
+  }, [store, dateKey, dayOfWeek])
 
   const checkedSet = useMemo(() => new Set(checkedIds), [checkedIds])
 
@@ -52,14 +55,14 @@ function App() {
       const next = isChecked
         ? prev.filter((id) => id !== supplierId)
         : [...prev, supplierId]
-      saveCheckedIds(store, dateKey, next)
+      saveCheckedIds(store, dateKey, dayOfWeek, next)
       return next
     })
   }
 
   function handleStoreChange(nextStore: StoreId) {
     if (nextStore === store) return
-    saveCheckedIds(store, dateKey, checkedIds)
+    saveCheckedIds(store, dateKey, dayOfWeek, checkedIds)
     setStore(nextStore)
   }
 
