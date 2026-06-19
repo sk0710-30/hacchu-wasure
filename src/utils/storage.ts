@@ -41,13 +41,13 @@ export function saveDayOfWeek(day: number): void {
   localStorage.setItem(DAY_KEY, String(day))
 }
 
-export function loadCheckedIds(store: StoreId, dateKey: string): string[] {
+export function loadCheckedIds(store: StoreId, dayOfWeek: number): string[] {
   const checks = readChecks()
-  return checks[`${store}:${dateKey}`] ?? []
+  return checks[`${store}:${dayOfWeek}`] ?? []
 }
 
-export function saveCheckedIds(store: StoreId, dateKey: string, ids: string[]): void {
+export function saveCheckedIds(store: StoreId, dayOfWeek: number, ids: string[]): void {
   const checks = readChecks()
-  checks[`${store}:${dateKey}`] = ids
+  checks[`${store}:${dayOfWeek}`] = ids
   writeChecks(checks)
 }

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 import { getSuppliersForDay, isTwoDayOrder, STORES, type StoreId } from './data/suppliers'
-import { getBusinessDate, getBusinessDateKey } from './utils/businessDay'
+import { getBusinessDate } from './utils/businessDay'
 import {
   loadCheckedIds,
   loadDayOfWeek,
@@ -16,13 +16,12 @@ const DAY_ORDER = [1, 2, 3, 4, 5, 6, 0] as const
 
 function App() {
   const businessDate = useMemo(() => getBusinessDate(), [])
-  const dateKey = useMemo(() => getBusinessDateKey(businessDate), [businessDate])
 
   const [dayOfWeek, setDayOfWeek] = useState<number>(
     () => loadDayOfWeek() ?? businessDate.getDay(),
   )
   const [store, setStore] = useState<StoreId>(() => loadStore())
-  const [checkedIds, setCheckedIds] = useState<string[]>(() => loadCheckedIds(store, dateKey))
+  const [checkedIds, setCheckedIds] = useState<string[]>(() => loadCheckedIds(store, loadDayOfWeek() ?? businessDate.getDay()))
 
   const todaySuppliers = useMemo(
     () => getSuppliersForDay(store, dayOfWeek),
@@ -38,8 +37,8 @@ function App() {
   }, [store])
 
   useEffect(() => {
-    setCheckedIds(loadCheckedIds(store, dateKey))
-  }, [store, dateKey])
+    setCheckedIds(loadCheckedIds(store, dayOfWeek))
+  }, [store, dayOfWeek])
 
   const checkedSet = useMemo(() => new Set(checkedIds), [checkedIds])
 
@@ -52,14 +51,14 @@ function App() {
       const next = isChecked
         ? prev.filter((id) => id !== supplierId)
         : [...prev, supplierId]
-      saveCheckedIds(store, dateKey, next)
+      saveCheckedIds(store, dayOfWeek, next)
       return next
     })
   }
 
   function handleStoreChange(nextStore: StoreId) {
     if (nextStore === store) return
-    saveCheckedIds(store, dateKey, checkedIds)
+    saveCheckedIds(store, dayOfWeek, checkedIds)
     setStore(nextStore)
   }
 
