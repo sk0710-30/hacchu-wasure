@@ -51,13 +51,11 @@ function App() {
   const allDone = todaySuppliers.length > 0 && unchecked.length === 0
 
   function toggleCheck(supplierId: string, isChecked: boolean) {
-    setCheckedIds((prev) => {
-      const next = isChecked
-        ? prev.filter((id) => id !== supplierId)
-        : [...prev, supplierId]
-      saveCheckedIds(store, dateKey, dayOfWeek, next)
-      return next
-    })
+    const next = isChecked
+      ? checkedIds.filter((id) => id !== supplierId)
+      : [...checkedIds, supplierId]
+    setCheckedIds(next)
+    saveCheckedIds(store, dateKey, dayOfWeek, next)
   }
 
   function handleStoreChange(nextStore: StoreId) {
