@@ -2,7 +2,6 @@ import type { StoreId } from '../data/suppliers'
 
 const STORE_KEY = 'hacchu-wasure-store'
 const CHECKS_KEY = 'hacchu-wasure-checks'
-const DAY_KEY = 'hacchu-wasure-day'
 
 type CheckState = Record<string, string[]>
 
@@ -23,22 +22,11 @@ function writeChecks(checks: CheckState): void {
 
 export function loadStore(): StoreId {
   const value = localStorage.getItem(STORE_KEY)
-  return value === 'grande' ? 'grande' : 'mundo'
+  return value === 'grande' || value === 'hoshigaoka' ? value : 'mundo'
 }
 
 export function saveStore(store: StoreId): void {
   localStorage.setItem(STORE_KEY, store)
-}
-
-export function loadDayOfWeek(): number | null {
-  const raw = localStorage.getItem(DAY_KEY)
-  const parsed = Number(raw)
-  if (raw === null || Number.isNaN(parsed) || parsed < 0 || parsed > 6) return null
-  return parsed
-}
-
-export function saveDayOfWeek(day: number): void {
-  localStorage.setItem(DAY_KEY, String(day))
 }
 
 export function loadCheckedIds(store: StoreId, dateKey: string, dayOfWeek: number): string[] {

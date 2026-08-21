@@ -4,10 +4,8 @@ import { getSuppliersForDay, isTwoDayOrder, STORES, type StoreId } from './data/
 import { getBusinessDate, getBusinessDateKey } from './utils/businessDay'
 import {
   loadCheckedIds,
-  loadDayOfWeek,
   loadStore,
   saveCheckedIds,
-  saveDayOfWeek,
   saveStore,
 } from './utils/storage'
 
@@ -18,23 +16,16 @@ function App() {
   const businessDate = useMemo(() => getBusinessDate(), [])
   const dateKey = useMemo(() => getBusinessDateKey(businessDate), [businessDate])
 
-  const [dayOfWeek, setDayOfWeek] = useState<number>(
-    () => loadDayOfWeek() ?? businessDate.getDay(),
-  )
+  const [dayOfWeek, setDayOfWeek] = useState<number>(() => businessDate.getDay())
   const [store, setStore] = useState<StoreId>(() => loadStore())
-  const [checkedIds, setCheckedIds] = useState<string[]>(() => {
-    const initDay = loadDayOfWeek() ?? getBusinessDate().getDay()
-    return loadCheckedIds(store, getBusinessDateKey(getBusinessDate()), initDay)
-  })
+  const [checkedIds, setCheckedIds] = useState<string[]>(() =>
+    loadCheckedIds(store, dateKey, businessDate.getDay()),
+  )
 
   const todaySuppliers = useMemo(
     () => getSuppliersForDay(store, dayOfWeek),
     [store, dayOfWeek],
   )
-
-  useEffect(() => {
-    saveDayOfWeek(dayOfWeek)
-  }, [dayOfWeek])
 
   useEffect(() => {
     saveStore(store)
@@ -128,7 +119,7 @@ function App() {
                     onClick={() => toggleCheck(supplier.id, false)}
                   >
                     <span className="supplier-name">
-                      {supplier.name}
+                      {supplier.storeNames?.[store] ?? supplier.name}
                       {supplier.importantFor.includes(store) && (
                         <span className="tag tag-important">重要</span>
                       )}
@@ -158,7 +149,7 @@ function App() {
                     onClick={() => toggleCheck(supplier.id, true)}
                   >
                     <span className="supplier-name">
-                      {supplier.name}
+                      {supplier.storeNames?.[store] ?? supplier.name}
                       {supplier.importantFor.includes(store) && (
                         <span className="tag tag-important">重要</span>
                       )}
