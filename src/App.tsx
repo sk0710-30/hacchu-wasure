@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 import { getSuppliersForDay, isTwoDayOrder, STORES, type StoreId } from './data/suppliers'
-import { getBusinessDate, getBusinessDateKey } from './utils/businessDay'
+import {
+  getBusinessDate,
+  getBusinessDateKey,
+  getChangedBusinessDate,
+  getMillisecondsUntilNextBusinessDay,
+} from './utils/businessDay'
 import {
   loadCheckedIds,
   loadStore,
@@ -13,7 +18,7 @@ const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'] as const
 const DAY_ORDER = [1, 2, 3, 4, 5, 6, 0] as const
 
 function App() {
-  const businessDate = useMemo(() => getBusinessDate(), [])
+  const [businessDate, setBusinessDate] = useState<Date>(() => getBusinessDate())
   const dateKey = useMemo(() => getBusinessDateKey(businessDate), [businessDate])
 
   const [dayOfWeek, setDayOfWeek] = useState<number>(() => businessDate.getDay())
@@ -26,6 +31,38 @@ function App() {
     () => getSuppliersForDay(store, dayOfWeek),
     [store, dayOfWeek],
   )
+
+  useEffect(() => {
+    let timeoutId: number
+
+    function updateBusinessDate(): boolean {
+      const nextBusinessDate = getChangedBusinessDate(businessDate)
+      if (!nextBusinessDate) return false
+      setBusinessDate(nextBusinessDate)
+      setDayOfWeek(nextBusinessDate.getDay())
+      return true
+    }
+
+    function scheduleNextBusinessDay(): void {
+      timeoutId = window.setTimeout(() => {
+        if (!updateBusinessDate()) scheduleNextBusinessDay()
+      }, getMillisecondsUntilNextBusinessDay())
+    }
+
+    function handleVisibilityChange(): void {
+      if (document.visibilityState !== 'visible') return
+      window.clearTimeout(timeoutId)
+      if (!updateBusinessDate()) scheduleNextBusinessDay()
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    if (!updateBusinessDate()) scheduleNextBusinessDay()
+
+    return () => {
+      window.clearTimeout(timeoutId)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [businessDate])
 
   useEffect(() => {
     saveStore(store)
